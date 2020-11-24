@@ -51,3 +51,17 @@ stepout返回，这时第一个卷积层已经初始化完毕。构建完毕之�
 可以看到modules字典里已经存在了一个卷积层，它的名称是’conv1’，由于conv2d也是一个module所以它肯定也会有那8个有序属性。对于第二行卷积层依然采用stepinto stepout的方式进行观察，但发现modules当中现在还没有conv2这个属性，这是因为stepinto stepout之后我们只是实现了nn.Conv2d的一个实例化，还没有赋值到LeNet类属性conv2当中。只是构建了网络层，下一步才是赋值到conv2中。
 在Module里面有个机制，它会拦截所有的类属性赋值操作。在第二行卷积层处stepinto，程序会跳转到module.py文件中的__setattr__()函数：
 ![](https://img-blog.csdnimg.cn/20200904104333646.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L0Rlc3BhY2l0bzEwMDY=,size_16,color_FFFFFF,t_70#pic_center)
+这个函数的功能就是会拦截所有类属性的赋值，我们在构建万nn.Conv2d第二个卷积层后还没有进行赋值给conv2属性的操作，就被__setattr__()这个函数给拦截了。
+![](https://img-blog.csdnimg.cn/20200904104557976.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L0Rlc3BhY2l0bzEwMDY=,size_16,color_FFFFFF,t_70#pic_center)
+这个函数主要是先判断这个传入的value的类型，如果value的类型是parameter的话，它就会存储到parameters这个有序字典当中，
+![](https://img-blog.csdnimg.cn/20200904104751972.png#pic_center)
+
+可以看到这时传入的value是个Module，因为它是Conv2d所以它会被存到modules这个有序字典当中。
+![](https://img-blog.csdnimg.cn/20200904104935986.png#pic_center)
+这里的modules[name]中的name就是我们的类属性’conv2’。这时候我们stepout返回，即可看到modules字典中已经有了conv2这个类属性了：
+![](https://img-blog.csdnimg.cn/20200904105050878.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L0Rlc3BhY2l0bzEwMDY=,size_16,color_FFFFFF,t_70#pic_center)
+每一次网络都会像上述一样计算和存储。以上就是nn.Module属性构建的机制。
+## 总计
+* 一个module可以包含多个子module
+* 一个module相当于一个运算，必须实现forward（）函数
+* 每个module都有8个有序字典管理它的属性
