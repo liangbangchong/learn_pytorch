@@ -1,3 +1,6 @@
+参考资料：
+https://www.cnblogs.com/hellcat/p/8509351.html
+
 # Pytorch系列之——模型创建与nn.Module
 ------
 ## 模型创建
